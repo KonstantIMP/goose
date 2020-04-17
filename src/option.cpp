@@ -16,55 +16,55 @@ GtkWidget * main_win;
 static GtkWidget * create_main_window();
 
 extern "C" {
-void cancel() {
-    if(!cfg_json.is_config()) {
-        system("./error_msg \"You cannot play the game without option file!\"");
+    CONFIGLIB_API void cancel() {
+        if(!cfg_json.is_config()) {
+            system("./error_msg \"You cannot play the game without option file!\"");
+        }
+
+        gtk_main_quit();
     }
 
-    gtk_main_quit();
-}
+    CONFIGLIB_API void ok() {
+        cfg_json.write();
 
-void ok() {
-    cfg_json.write();
-
-    gtk_main_quit();
-}
-
-void change_check(GtkWidget * check, gpointer data) {
-    if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "VSync") {
-        if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("vsync", "en");
-        else cfg_json.add_param("vsync", "dis");
+        gtk_main_quit();
     }
 
-    if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "Music" || std::string(gtk_label_get_text(GTK_LABEL(data))) == "Музыка") {
-        if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("music", "en");
-        else cfg_json.add_param("music", "dis");
+    CONFIGLIB_API void change_check(GtkWidget * check, gpointer data) {
+        if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "VSync") {
+            if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("vsync", "en");
+            else cfg_json.add_param("vsync", "dis");
+        }
+
+        if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "Music" || std::string(gtk_label_get_text(GTK_LABEL(data))) == "Музыка") {
+            if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("music", "en");
+            else cfg_json.add_param("music", "dis");
+        }
+
+        if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "Sound effects" || std::string(gtk_label_get_text(GTK_LABEL(data))) == "Звуковые эффекты") {
+            if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("sound", "en");
+            else cfg_json.add_param("sound", "dis");
+        }
     }
 
-    if(std::string(gtk_label_get_text(GTK_LABEL(data))) == "Sound effects" || std::string(gtk_label_get_text(GTK_LABEL(data))) == "Звуковые эффекты") {
-        if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check))) cfg_json.add_param("sound", "en");
-        else cfg_json.add_param("sound", "dis");
+    CONFIGLIB_API void lang_change(GtkWidget * combo) {
+        if(gtk_combo_box_get_active(GTK_COMBO_BOX(combo)) == 0) cfg_json.add_param("language", "en");
+        else cfg_json.add_param("language", "ru");
+
+        cfg_json.write();
+
+        gtk_main_quit();
+
+        g_object_unref(main_win);
+
+        gtk_widget_destroy(main_win);
+
+        main_win = create_main_window();
+
+        gtk_widget_show_all(main_win);
+
+        gtk_main();
     }
-}
-
-void lang_change(GtkWidget * combo) {
-    if(gtk_combo_box_get_active(GTK_COMBO_BOX(combo)) == 0) cfg_json.add_param("language", "en");
-    else cfg_json.add_param("language", "ru");
-
-    cfg_json.write();
-
-    gtk_main_quit();
-
-    g_object_unref(main_win);
-
-    gtk_widget_destroy(main_win);
-
-    main_win = create_main_window();
-
-    gtk_widget_show_all(main_win);
-
-    gtk_main();
-}
 }
 
 int main(int argc, char* argv[]) {

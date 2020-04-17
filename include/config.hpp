@@ -3,32 +3,46 @@
 
 #pragma once
 
+#if defined(linux) || defined(__linux)
+    #define CONFIGLIB_API
+#else
+    #ifdef CONFIGLIB_EXPORTS
+    #define CONFIGLIB_API __declspec(dllexport)
+    #else
+    #define CONFIGLIB_API __declspec(dllimport)
+    #endif
+#endif
+
 #include <string>
 #include <map>
 
-class config {
-public:
-    config();
-    config(const std::string &);
+extern "C" {
 
-    ~config();
+    class config {
+    public:
+        CONFIGLIB_API config();
+        CONFIGLIB_API config(const std::string &);
 
-    void set_file_name(const std::string &);
+        CONFIGLIB_API ~config();
 
-    std::string get_file_name() const;
+        CONFIGLIB_API void set_file_name(const std::string &);
 
-    bool is_config() const;
+        CONFIGLIB_API std::string get_file_name() const;
 
-    void add_param(const std::string &, const std::string &);
+        CONFIGLIB_API bool is_config() const;
 
-    void write();
+        CONFIGLIB_API void add_param(const std::string &, const std::string &);
 
-    std::string get_param(const std::string &);
+        CONFIGLIB_API void write();
 
-private:
-    std::string file_name;
+        CONFIGLIB_API std::string get_param(const std::string &);
 
-    std::map<std::string, std::string> params;
-};
+    private:
+        std::string file_name;
+
+        std::map<std::string, std::string> params;
+    };
+
+}
 
 #endif // CONFIG_HPP
