@@ -3,6 +3,12 @@
 
 #include <SFML/Audio.hpp>
 
+#if defined(linux) || defined(__linux)
+    #define ERROR_MACROS(error_message) std::string("./error_msg " + std::string(error_message)).c_str()
+#else
+    #define ERROR_MACROS(error_message) std::string("error_msg.exe " + std::string(error_message)).c_str()
+#endif
+
 #define DEVELOP_SCREEN_W 1366
 #define DEVELOP_SCREEN_H 768
 
@@ -13,7 +19,7 @@ game::game() {
     if (!icon.loadFromFile("images/gui/icon.png")) {
         if (!icon.loadFromFile("images/gui/icon_64.png")){
             main_win->close();
-            system("./error_msg \"Unable to load icon file! Please, reinstall program, to avoid mistakes!\"");
+            system(ERROR_MACROS("\"Unable to load icon file! Please, reinstall program, to avoid mistakes!\""));
 
             exit(2);
         }
@@ -34,7 +40,7 @@ void game::run() {
 
     if (!menu_music.openFromFile("music/deliberate_thought.ogg")) {
         main_win->close();
-        system("./error_msg \"Unable to load menu music file! Please, reinstall program, to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load menu music file! Please, reinstall program, to avoid mistakes!\""));
 
         exit(4);
     }
@@ -53,7 +59,7 @@ void game::start_screensaver() {
     sf::Texture start_image;
     if (!start_image.loadFromFile("images/gui/start.png")) {
         main_win->close();
-        system("./error_msg \"Unable to load logo image file! Please, reinstall program, to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load logo image file! Please, reinstall program, to avoid mistakes!\""));
 
         exit(3);
     }
@@ -112,14 +118,14 @@ void game::start_main_menu() {
     if(!background.loadFromFile("images/gui/menu_background.png")) {
         main_win->close();
 
-        system("./error_msg \"Unable to load menu background. Please, reinstall program, to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load menu background. Please, reinstall program, to avoid mistakes!\""));
     }
 
     sf::Texture buttons;
     if(!buttons.loadFromFile("images/gui/menu_buttons.png")) {
         main_win->close();
 
-        system("./error_msg \"Unable to load menu buttons. Please, reinstall program, to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load menu buttons. Please, reinstall program, to avoid mistakes!\""));
     }
 
     sf::Sprite back(background);
@@ -133,7 +139,7 @@ void game::start_main_menu() {
     if(!btn_sound_bfr.loadFromFile("music/menu_btn.ogg")) {
         main_win->close();
 
-        system("./error_msg \"Unable to load menu buttons sound. Please, reinstall program, to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load menu buttons sound. Please, reinstall program, to avoid mistakes!\""));
     }
 
     sf::Sound btn_sound(btn_sound_bfr);

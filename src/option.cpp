@@ -1,9 +1,16 @@
 #include "../include/config.hpp"
 
 #include <gtk/gtk.h>
+#include <cstring>
 #include <locale>
 
 #define CONFIG_FILE "config.json"
+
+#if defined(linux) || defined(__linux)
+    #define ERROR_MACROS(error_message) std::string("./error_msg " + std::string(error_message)).c_str()
+#else
+    #define ERROR_MACROS(error_message) std::string("error_msg.exe " + std::string(error_message)).c_str()
+#endif
 
 // ----------------------------------------------------
 
@@ -18,7 +25,7 @@ static GtkWidget * create_main_window();
 extern "C" {
     CONFIGLIB_API void cancel() {
         if(!cfg_json.is_config()) {
-            system("./error_msg \"You cannot play the game without option file!\"");
+            system(ERROR_MACROS("\"You cannot play the game without option file!\""));
         }
 
         gtk_main_quit();
@@ -88,10 +95,7 @@ static GtkWidget * create_main_window() {
     window_builder = gtk_builder_new();
 
     if(!gtk_builder_add_from_file(window_builder, "res/option.glade", &err_msg)) {
-        std::string tmp = err_msg->message;
-        tmp = "./error_msg \"" + tmp + "\"";
-
-        system(tmp.c_str());
+        system(ERROR_MACROS("\"Unable to load window form. Please, reinstall this programm to avoid mistakes!\""));
 
         g_error_free(err_msg);
 
@@ -101,16 +105,13 @@ static GtkWidget * create_main_window() {
     window = GTK_WIDGET(gtk_builder_get_object(window_builder, "win"));
 
     if(!window) {
-        system("./error_msg \"Unable to load option window. Please, reinstall this programm to avoid mistakes!\"");
+        system(ERROR_MACROS("\"Unable to load option window. Please, reinstall this programm to avoid mistakes!\""));
 
         exit(2);
     }
 
     if(!gtk_window_set_icon_from_file(GTK_WINDOW(window), "images/option.png", &err_msg)) {
-        std::string tmp = err_msg->message;
-        tmp = "./error_msg \"" + tmp + "\"";
-
-        system(tmp.c_str());
+        system(ERROR_MACROS("\"Unable to load window icon. Please, reinstall this programm to avoid mistakes!\""));
 
         g_error_free(err_msg);
 
