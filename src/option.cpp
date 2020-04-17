@@ -51,7 +51,11 @@ void lang_change(GtkWidget * combo) {
     if(gtk_combo_box_get_active(GTK_COMBO_BOX(combo)) == 0) cfg_json.add_param("language", "en");
     else cfg_json.add_param("language", "ru");
 
+    cfg_json.write();
+
     gtk_main_quit();
+
+    g_object_unref(main_win);
 
     gtk_widget_destroy(main_win);
 
@@ -129,8 +133,6 @@ static GtkWidget * create_main_window() {
             gtk_button_set_label(GTK_BUTTON(gtk_builder_get_object(window_builder, "ok_btn")), "OK");
 
             gtk_combo_box_set_active(GTK_COMBO_BOX(gtk_builder_get_object(window_builder, "lang_combo")), 1);
-
-            cfg_json.add_param("language", "ru");
         }
         else {
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(window_builder, "lang_msg")), "Language");
@@ -142,8 +144,6 @@ static GtkWidget * create_main_window() {
             gtk_button_set_label(GTK_BUTTON(gtk_builder_get_object(window_builder, "ok_btn")), "OK");
 
             gtk_combo_box_set_active(GTK_COMBO_BOX(gtk_builder_get_object(window_builder, "lang_combo")), 0);
-
-            cfg_json.add_param("language", "en");
         }
 
         if(cfg_json.get_param("vsync") == "en") gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(window_builder, "vsync_check")), true);

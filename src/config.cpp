@@ -12,7 +12,11 @@ void config::set_file_name(const std::string& name) {
 
     std::ifstream fin(name);
 
+<<<<<<< HEAD
+    if(!fin.is_open()) return;
+=======
     if (!fin.is_open()) return;
+>>>>>>> ba6338c4f58f58d04c8d62a7452b5741ba11f432
 
     std::string tmp;
 
