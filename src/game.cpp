@@ -26,7 +26,7 @@ game::game() {
         }
     }
 
-	main_win = new sf::RenderWindow(sf::VideoMode(600, 200), "Gooose", sf::Style::Fullscreen);
+    main_win = new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], "Gooose", sf::Style::Fullscreen);
 
     if(json_cfg.get_param("vsync") == "en") main_win->setVerticalSyncEnabled(true);
 
@@ -96,6 +96,13 @@ void game::start_screensaver() {
                 main_win->close();
                 exit(0);
             }
+            if(main_win_event.type == sf::Event::KeyPressed) {
+                if(main_win_event.key.code == sf::Keyboard::Escape) {
+                    main_win->clear();
+
+                    return;
+                }
+            }
         }
 
         if(main_timer.getElapsedTime().asMilliseconds() < 400) {
@@ -146,10 +153,19 @@ void game::start_main_menu() {
     }
 
     sf::Texture buttons;
-    if(!buttons.loadFromFile("images/gui/menu_buttons.png")) {
-        main_win->close();
+    if(json_cfg.get_param("language") == "ru") {
+        if(!buttons.loadFromFile("images/gui/menu_buttons_ru.png")) {
+            main_win->close();
 
-        system(ERROR_MACROS("\"Unable to load menu buttons. Please, reinstall program, to avoid mistakes!\""));
+            system(ERROR_MACROS("\"Unable to load menu buttons. Please, reinstall program, to avoid mistakes!\""));
+        }
+    }
+    else {
+        if(!buttons.loadFromFile("images/gui/menu_buttons_en.png")) {
+            main_win->close();
+
+            system(ERROR_MACROS("\"Unable to load menu buttons. Please, reinstall program, to avoid mistakes!\""));
+        }
     }
 
     sf::Sprite back(background);
@@ -173,30 +189,88 @@ void game::start_main_menu() {
     input_manager menu_mgr;
 
     menu_mgr.add_keyboard_event(sf::Keyboard::Down, [&](){
-        btn_sound.play();
-        if(is_continue == true) { is_continue = false; is_new = true;}
-        else if(is_new == true) { is_new = false; is_option = true;}
-        else if(is_option == true) { is_option = false; is_exit = true;}
+        if(is_exit) return;
+
+        if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+        if(is_continue) {
+            is_continue = false;
+            is_new = true;
+        }
+        else if(is_new) {
+            is_new = false;
+            is_option = true;
+        }
+        else {
+            is_option = false;
+            is_exit = true;
+        }
     });
 
     menu_mgr.add_keyboard_event(sf::Keyboard::Up, [&](){
-        btn_sound.play();
-        if(is_exit == true) { is_exit = false; is_option = true;}
-        else if(is_new == true) { is_new = false; is_continue = true;}
-        else if(is_option == true) { is_option = false; is_new = true;}
+       if(is_continue) return;
+
+       if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+       if(is_exit) {
+           is_exit = false;
+           is_option = true;
+       }
+       else if(is_option) {
+           is_option = false;
+           is_new = true;
+       }
+       else {
+           is_new = false;
+           is_continue = true;
+       }
     });
 
     menu_mgr.add_keyboard_event(sf::Keyboard::Enter, [&](){
-        btn_sound.play();
-        if(is_exit == true) { main_win->close(); }
-        else if(is_new == true) { }
-        else if(is_option == true) {  }
-        else {  }
+       if(is_exit) exit(0);
+       if(is_option) {
+           main_win->close();
+
+           system(CONFIG_MACROS);
+
+           main_win->create(sf::VideoMode::getFullscreenModes()[0], "Gooose", sf::Style::Fullscreen);
+       }
     });
 
-    menu_mgr.add_mouse_event(sf::IntRect(950, 200, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
-        is_new = true;
-        is_continue = is_exit = is_option = false;
+    menu_mgr.add_mouse_event(sf::IntRect(513 * w_scale, 250 * h_scale, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
+       if(is_continue) return;
+
+       if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+       is_new = is_option = is_exit = false;
+       is_continue = true;
+    });
+
+    menu_mgr.add_mouse_event(sf::IntRect(513 * w_scale, (250 + 125) * h_scale, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
+       if(is_new) return;
+
+       if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+       is_continue = is_option = is_exit = false;
+       is_new = true;
+    });
+
+    menu_mgr.add_mouse_event(sf::IntRect(513 * w_scale, (250 + 250) * h_scale, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
+       if(is_option) return;
+
+       if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+       is_continue = is_new = is_exit = false;
+       is_option = true;
+    });
+
+    menu_mgr.add_mouse_event(sf::IntRect(513 * w_scale, (250 + 375) * h_scale, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
+       if(is_exit) return;
+
+       if(json_cfg.get_param("sound") == "en") btn_sound.play();
+
+       is_continue = is_new = is_option = false;
+       is_exit = true;
     });
 
     main_timer.restart();
@@ -204,7 +278,7 @@ void game::start_main_menu() {
     while (is_menu == true && main_win->isOpen()) {
         while (main_win->pollEvent(main_win_event)) {
             if(main_win_event.type == sf::Event::Closed) main_win->close();
-            if(main_timer.getElapsedTime().asSeconds() > 0.08) {
+            if(main_timer.getElapsedTime().asSeconds() > 0.1) {
                 menu_mgr.play_event(main_win_event);
                 main_timer.restart();
             }
@@ -214,19 +288,19 @@ void game::start_main_menu() {
         main_win->draw(back);
 
         button.setTextureRect(sf::IntRect(340 * is_continue, 0 , 340, 100));
-        button.setPosition(950 * w_scale, 50 * h_scale);
+        button.setPosition(513 * w_scale, 250 * h_scale);
         main_win->draw(button);
 
         button.setTextureRect(sf::IntRect(340 * is_new, 100 , 340, 100));
-        button.setPosition(950 * w_scale, (50 + 150) * h_scale);
+        button.setPosition(513 * w_scale, (250 + 125) * h_scale);
         main_win->draw(button);
 
         button.setTextureRect(sf::IntRect(340 * is_option, 200 , 340, 100));
-        button.setPosition(950 * w_scale, (50 + 300) * h_scale);
+        button.setPosition(513 * w_scale, (250 + 250) * h_scale);
         main_win->draw(button);
 
         button.setTextureRect(sf::IntRect(340 * is_exit, 300 , 340, 100));
-        button.setPosition(950 * w_scale, (50 + 450) * h_scale);
+        button.setPosition(513 * w_scale, (250 + 375) * h_scale);
         main_win->draw(button);
 
         main_win->display();
