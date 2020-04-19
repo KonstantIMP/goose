@@ -5,15 +5,30 @@
 
 #if defined(linux) || defined(__linux)
     #define ERROR_MACROS(error_message) std::string("./error_msg " + std::string(error_message)).c_str()
+    #define CONFIG_MACROS "./options"
 #else
     #define ERROR_MACROS(error_message) std::string("error_msg.exe " + std::string(error_message)).c_str()
+    #define CONFIG_MACROS "options.exe"
 #endif
 
 #define DEVELOP_SCREEN_W 1366
 #define DEVELOP_SCREEN_H 768
 
 game::game() {
+    json_cfg.set_file_name("config.json");
+
+    if(!json_cfg.is_config()) {
+        system(CONFIG_MACROS);
+
+        if(!json_cfg.is_config()) {
+            ERROR_MACROS("You cannot play the game without config file");
+            exit(7);
+        }
+    }
+
 	main_win = new sf::RenderWindow(sf::VideoMode(600, 200), "Gooose", sf::Style::Fullscreen);
+
+    if(json_cfg.get_param("vsync") == "en") main_win->setVerticalSyncEnabled(true);
 
 	sf::Image icon;
     if (!icon.loadFromFile("images/gui/icon.png")) {
@@ -38,15 +53,17 @@ game::~game() {
 void game::run() {
     sf::Music menu_music;
 
-    if (!menu_music.openFromFile("music/deliberate_thought.ogg")) {
-        main_win->close();
-        system(ERROR_MACROS("\"Unable to load menu music file! Please, reinstall program, to avoid mistakes!\""));
+    if(json_cfg.get_param("music") == "en") {
+        if (!menu_music.openFromFile("music/deliberate_thought.ogg")) {
+            main_win->close();
+            system(ERROR_MACROS("\"Unable to load menu music file! Please, reinstall program, to avoid mistakes!\""));
 
-        exit(4);
+            exit(4);
+        }
+
+        menu_music.setLoop(true);
+        menu_music.play();
     }
-
-    menu_music.setLoop(true);
-    menu_music.play();
 
     start_screensaver();
 
@@ -75,22 +92,29 @@ void game::start_screensaver() {
 
     while (main_timer.getElapsedTime().asSeconds() < 3 && main_win->isOpen()) {
         while(main_win->pollEvent(main_win_event)) {
-            if (main_win_event.type == sf::Event::Closed) main_win->close();
+            if (main_win_event.type == sf::Event::Closed) {
+                main_win->close();
+                exit(0);
+            }
         }
 
-        if (main_timer.getElapsedTime().asMilliseconds() > 50) shadow.setFillColor(sf::Color(0, 0, 0, 225));
-        if (main_timer.getElapsedTime().asMilliseconds() > 100) shadow.setFillColor(sf::Color(0, 0, 0, 205));
-        if (main_timer.getElapsedTime().asMilliseconds() > 150) shadow.setFillColor(sf::Color(0, 0, 0, 155));
-        if (main_timer.getElapsedTime().asMilliseconds() > 200) shadow.setFillColor(sf::Color(0, 0, 0, 105));
-        if (main_timer.getElapsedTime().asMilliseconds() > 250) shadow.setFillColor(sf::Color(0, 0, 0, 50));
-        if (main_timer.getElapsedTime().asMilliseconds() > 300) shadow.setFillColor(sf::Color(0, 0, 0, 0));
+        if(main_timer.getElapsedTime().asMilliseconds() < 400) {
+            if (main_timer.getElapsedTime().asMilliseconds() > 50) shadow.setFillColor(sf::Color(0, 0, 0, 225));
+            if (main_timer.getElapsedTime().asMilliseconds() > 100) shadow.setFillColor(sf::Color(0, 0, 0, 205));
+            if (main_timer.getElapsedTime().asMilliseconds() > 150) shadow.setFillColor(sf::Color(0, 0, 0, 155));
+            if (main_timer.getElapsedTime().asMilliseconds() > 200) shadow.setFillColor(sf::Color(0, 0, 0, 105));
+            if (main_timer.getElapsedTime().asMilliseconds() > 250) shadow.setFillColor(sf::Color(0, 0, 0, 50));
+            if (main_timer.getElapsedTime().asMilliseconds() > 300) shadow.setFillColor(sf::Color(0, 0, 0, 0));
+        }
 
-        if(main_timer.getElapsedTime().asSeconds() > 2.4) shadow.setFillColor((sf::Color(0, 0, 0, 50)));
-        if(main_timer.getElapsedTime().asSeconds() > 2.5) shadow.setFillColor((sf::Color(0, 0, 0, 105)));
-        if(main_timer.getElapsedTime().asSeconds() > 2.63) shadow.setFillColor((sf::Color(0, 0, 0, 155)));
-        if(main_timer.getElapsedTime().asSeconds() > 2.7) shadow.setFillColor((sf::Color(0, 0, 0, 205)));
-        if(main_timer.getElapsedTime().asSeconds() > 2.8) shadow.setFillColor((sf::Color(0, 0, 0, 225)));
-        if(main_timer.getElapsedTime().asSeconds() > 2.9) shadow.setFillColor((sf::Color(0, 0, 0, 255)));
+        if(main_timer.getElapsedTime().asSeconds() > 2.3) {
+            if(main_timer.getElapsedTime().asSeconds() > 2.4) shadow.setFillColor((sf::Color(0, 0, 0, 50)));
+            if(main_timer.getElapsedTime().asSeconds() > 2.5) shadow.setFillColor((sf::Color(0, 0, 0, 105)));
+            if(main_timer.getElapsedTime().asSeconds() > 2.63) shadow.setFillColor((sf::Color(0, 0, 0, 155)));
+            if(main_timer.getElapsedTime().asSeconds() > 2.7) shadow.setFillColor((sf::Color(0, 0, 0, 205)));
+            if(main_timer.getElapsedTime().asSeconds() > 2.8) shadow.setFillColor((sf::Color(0, 0, 0, 225)));
+            if(main_timer.getElapsedTime().asSeconds() > 2.9) shadow.setFillColor((sf::Color(0, 0, 0, 255)));
+        }
 
         main_win->clear();
         main_win->draw(load_logo);
@@ -136,31 +160,33 @@ void game::start_main_menu() {
     button.setScale(sf::Vector2f(w_scale, h_scale));
 
     sf::SoundBuffer btn_sound_bfr;
-    if(!btn_sound_bfr.loadFromFile("music/menu_btn.ogg")) {
-        main_win->close();
+    if(json_cfg.get_param("sound") == "en") {
+        if(!btn_sound_bfr.loadFromFile("music/menu_btn.ogg")) {
+            main_win->close();
 
-        system(ERROR_MACROS("\"Unable to load menu buttons sound. Please, reinstall program, to avoid mistakes!\""));
+            system(ERROR_MACROS("\"Unable to load menu buttons sound. Please, reinstall program, to avoid mistakes!\""));
+        }
     }
 
     sf::Sound btn_sound(btn_sound_bfr);
 
     input_manager menu_mgr;
 
-    menu_mgr.add_keyboard_event(menu_mgr.create_keyboard_event(sf::Keyboard::Down), [&](){
+    menu_mgr.add_keyboard_event(sf::Keyboard::Down, [&](){
         btn_sound.play();
         if(is_continue == true) { is_continue = false; is_new = true;}
         else if(is_new == true) { is_new = false; is_option = true;}
         else if(is_option == true) { is_option = false; is_exit = true;}
     });
 
-    menu_mgr.add_keyboard_event(menu_mgr.create_keyboard_event(sf::Keyboard::Up), [&](){
+    menu_mgr.add_keyboard_event(sf::Keyboard::Up, [&](){
         btn_sound.play();
         if(is_exit == true) { is_exit = false; is_option = true;}
         else if(is_new == true) { is_new = false; is_continue = true;}
         else if(is_option == true) { is_option = false; is_new = true;}
     });
 
-    menu_mgr.add_keyboard_event(menu_mgr.create_keyboard_event(sf::Keyboard::Enter), [&](){
+    menu_mgr.add_keyboard_event(sf::Keyboard::Enter, [&](){
         btn_sound.play();
         if(is_exit == true) { main_win->close(); }
         else if(is_new == true) { }
@@ -168,12 +194,17 @@ void game::start_main_menu() {
         else {  }
     });
 
+    menu_mgr.add_mouse_event(sf::IntRect(950, 200, 340, 100), (sf::Mouse::Button)mouse_hover, [&](){
+        is_new = true;
+        is_continue = is_exit = is_option = false;
+    });
+
     main_timer.restart();
 
     while (is_menu == true && main_win->isOpen()) {
         while (main_win->pollEvent(main_win_event)) {
             if(main_win_event.type == sf::Event::Closed) main_win->close();
-            if(main_timer.getElapsedTime().asSeconds() > 0.1) {
+            if(main_timer.getElapsedTime().asSeconds() > 0.08) {
                 menu_mgr.play_event(main_win_event);
                 main_timer.restart();
             }

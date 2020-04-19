@@ -65,3 +65,9 @@ add_executable(options ${SETTING})
 target_link_libraries(error_msg ${GTK3_LIBRARIES})
 target_link_libraries(options ${GTK3_LIBRARIES} config)
 target_link_libraries(goose game input_mgr config)
+
+
+############################# Tests ##################################
+
+
+######################################################################

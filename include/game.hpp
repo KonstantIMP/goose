@@ -5,6 +5,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "../include/config.hpp"
+
 class game {
 public:
 	game();
@@ -21,6 +23,8 @@ private:
 
 	double w_scale;
 	double h_scale;
+
+    config json_cfg;
 
     void start_screensaver();
 
