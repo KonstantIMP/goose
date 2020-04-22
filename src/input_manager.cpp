@@ -92,15 +92,17 @@ void input_manager::clear_all() {
 
     while (k_iter != keyboard->end()) {
         delete k_iter->second;
-        keyboard->erase(k_iter);
         k_iter++;
     }
+
+    keyboard->clear();
 
     auto m_iter = mouse->begin();
 
     while (m_iter != mouse->end()) {
         delete m_iter->second.event_function;
-        mouse->erase(m_iter);
         m_iter++;
     }
+
+    mouse->clear();
 }

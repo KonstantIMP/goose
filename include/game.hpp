@@ -28,7 +28,9 @@ private:
 
     void start_screensaver();
 
-    void start_main_menu();
+    bool start_main_menu();
+
+    void start_option();
 };
 
 #endif

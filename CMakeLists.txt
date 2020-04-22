@@ -35,6 +35,12 @@ set(INPUT_LIB src/input_manager.cpp
 #SFML search
 find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
 
+find_package(Lua REQUIRED)
+include_directories(${LUA_INCLUDE_DIR})
+
+message("   *** Lua include: ${LUA_INCLUDE_DIR}")
+message("   *** Lua lib: ${LUA_LIBRARIES}")
+
 #GTK+ search
 FIND_PACKAGE(PkgConfig REQUIRED)
 PKG_CHECK_MODULES(GTK3 REQUIRED gtk+-3.0)

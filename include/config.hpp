@@ -37,6 +37,8 @@ extern "C" {
 
         CONFIGLIB_API std::string get_param(const std::string &);
 
+        CONFIGLIB_API void clear_all();
+
     private:
         std::string file_name;
 

@@ -104,3 +104,7 @@ std::string config::get_param(const std::string& param) {
 
     return params.find(param)->second;
 }
+
+void config::clear_all() {
+    params.clear();
+}
